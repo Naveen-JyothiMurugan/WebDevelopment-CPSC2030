@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Language Flashcard App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/styles.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">LangCards</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="login.html">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="register.html">Register</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <header class="text-center p-5 bg-white shadow-sm">
+    <h1 class="display-4">Learn Languages Smarter</h1>
+    <p class="lead">Flashcards with instant Google Translate integration and role-based access</p>
+    <a href="login.html" class="btn btn-primary btn-lg mt-3">Get Started</a>
+  </header>
+
+  <section class="container py-5">
+    <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="card text-white bg-info mb-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">Create & Practice Flashcards</h5>
+              <p class="card-text">Build your vocab database with ease.</p>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="card text-white bg-success mb-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">Instant Translation</h5>
+              <p class="card-text">Powered by Google Translate API.</p>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <div class="card text-white bg-warning mb-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">Track Your Progress</h5>
+              <p class="card-text">Smart dashboard for users and admins.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+    </div>
+  </section>
+
+  <footer class="text-center text-muted py-3 bg-white">
+    &copy; 2025 LangCards by Team Naveen. All rights reserved.
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
