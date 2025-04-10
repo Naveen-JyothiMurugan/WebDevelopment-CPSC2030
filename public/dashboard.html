@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - LangCards</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/styles.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/index.html">LangCards</a>
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <span id="roleDisplay" class="text-white fw-semibold"></span>
+        <button id="logoutBtn" class="btn btn-outline-light">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h2>Create a Flashcard</h2>
+    <div class="row g-3 align-items-center mb-4">
+      <div class="col-md-4">
+        <input type="text" id="wordInput" class="form-control" placeholder="Enter Word">
+      </div>
+      <div class="col-md-3">
+        <select id="languageSelect" class="form-select">
+          <option disabled selected>Translate To</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input type="text" id="translatedWord" class="form-control" placeholder="Translated Word" disabled>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button id="translateBtn" class="btn btn-secondary">Translate</button>
+        <button id="createBtn" class="btn btn-success">Create Flashcard</button>
+      </div>
+    </div>
+
+    <h3>Your Flashcards</h3>
+    <div id="cardsContainer" class="mt-3"></div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Edit Flashcard</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm">
+            <input type="hidden" id="editId">
+            <div class="mb-3">
+              <label for="editQuestion" class="form-label">Word</label>
+              <input type="text" class="form-control" id="editQuestion" required>
+            </div>
+            <div class="mb-3">
+              <label for="editLanguageSelect" class="form-label">Translate To</label>
+              <select class="form-select" id="editLanguageSelect" required>
+                <option disabled selected>Select Language</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editAnswer" class="form-label">Translation</label>
+              <input type="text" class="form-control" id="editAnswer" disabled>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Flashcard</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token) {
+      window.location.href = '/index.html';
+    }
+
+    document.getElementById('roleDisplay').textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : '';
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = '/index.html';
+    });
+
+    async function loadLanguages() {
+      const res = await fetch('/api/flashcards/translate/languages', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      const createSelect = document.getElementById('languageSelect');
+      const editSelect = document.getElementById('editLanguageSelect');
+
+      data.languages.forEach(lang => {
+        const option1 = document.createElement('option');
+        option1.value = lang.language;
+        option1.textContent = lang.name;
+        createSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = lang.language;
+        option2.textContent = lang.name;
+        editSelect.appendChild(option2);
+      });
+    }
+
+
+    async function loadFlashcards() {
+      const endpoint = role === 'admin' ? '/api/flashcards' : '/api/flashcards/my';
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = '';
+      data.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'border rounded p-3 mb-2 bg-white d-flex justify-content-between align-items-center';
+        div.innerHTML = `
+        <strong>${card.question} ➜ ${card.answer}</strong>
+        <div>
+          <button class="btn btn-sm btn-primary edit-btn" 
+            data-id="${card._id}" 
+            data-question="${card.question}" 
+            data-answer="${card.answer}">Edit</button>
+          ${role === 'admin' ? `<button class="btn btn-sm btn-danger ms-2 delete-btn" data-id="${card._id}">Delete</button>` : ''}
+        </div>
+      `;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('translateBtn').addEventListener('click', async () => {
+      const word = document.getElementById('wordInput').value;
+      const lang = document.getElementById('languageSelect').value;
+
+      const res = await fetch('/api/flashcards/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: word, targetLang: lang })
+      });
+
+      const data = await res.json();
+      document.getElementById('translatedWord').value = data.translatedText || '';
+    });
+
+    document.getElementById('createBtn').addEventListener('click', async () => {
+      const question = document.getElementById('wordInput').value;
+      const answer = document.getElementById('translatedWord').value;
+
+      const res = await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ question, answer })
+      });
+
+      if (res.ok) {
+        Swal.fire('✅ Flashcard Created!');
+        loadFlashcards();
+        document.getElementById('wordInput').value = '';
+        document.getElementById('translatedWord').value = '';
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-btn')) {
+        const id = e.target.dataset.id;
+        const question = e.target.dataset.question;
+        const answer = e.target.dataset.answer;
+
+        document.getElementById('editId').value = id;
+        document.getElementById('editQuestion').value = question;
+        document.getElementById('editAnswer').value = answer;
+
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+      }
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('editId').value;
+      const question = document.getElementById('editQuestion').value;
+      const targetLang = document.getElementById('editLanguageSelect').value;
+
+      // Translate the updated question
+      const translationRes = await fetch('/api/flashcards/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: question, targetLang })
+      });
+
+      const translationData = await translationRes.json();
+      const answer = translationData.translatedText;
+
+      // Now update the flashcard
+      const res = await fetch(`/api/flashcards/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ question, answer })
+      });
+
+      if (res.ok) {
+        Swal.fire('✅ Flashcard Updated with Translation!');
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        loadFlashcards();
+      } else {
+        Swal.fire('❌ Failed to update');
+      }
+    });
+
+
+    document.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('delete-btn')) {
+        const id = e.target.dataset.id;
+        if (confirm('Are you sure you want to delete this flashcard?')) {
+          await fetch(`/api/flashcards/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          loadFlashcards();
+        }
+      }
+    });
+
+    loadLanguages();
+    loadFlashcards();
+  </script>
+</body>
+
+</html>
